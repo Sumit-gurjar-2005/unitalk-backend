@@ -430,38 +430,71 @@ const initializeSocket = (server) => {
     /* =====================================================
        💬 ANONYMOUS MESSAGE
     ===================================================== */
-    socket.on("send-message", async ({ message }) => {
-      const roomId = activeChatRooms.get(socket.userId);
-      if (!roomId) return;
+    // socket.on("send-message", async ({ message }) => {
+    //   const roomId = activeChatRooms.get(socket.userId);
+    //   if (!roomId) return;
 
-      const saved = await Message.create({
-        chatRoom: roomId,
-        sender: socket.userId,
-        message,
-      });
+    //   const saved = await Message.create({
+    //     chatRoom: roomId,
+    //     sender: socket.userId,
+    //     message,
+    //   });
 
-      const chatRoom = await ChatRoom.findById(roomId);
-      const otherUserId =
-        chatRoom.user1.toString() === socket.userId
-          ? chatRoom.user2.toString()
-          : chatRoom.user1.toString();
+    //   const chatRoom = await ChatRoom.findById(roomId);
+    //   const otherUserId =
+    //     chatRoom.user1.toString() === socket.userId
+    //       ? chatRoom.user2.toString()
+    //       : chatRoom.user1.toString();
 
-      const otherSocketId = activeConnections.get(otherUserId);
+    //   const otherSocketId = activeConnections.get(otherUserId);
 
-      if (otherSocketId) {
-        io.to(otherSocketId).emit("new-message", {
-          message,
-          timestamp: saved.sentAt,
-          isMe: false,
-        });
-      }
+    //   if (otherSocketId) {
+    //     io.to(otherSocketId).emit("new-message", {
+    //       message,
+    //       timestamp: saved.sentAt,
+    //       isMe: false,
+    //     });
+    //   }
 
-      socket.emit("message-sent", {
-        message,
-        timestamp: saved.sentAt,
-        isMe: true,
-      });
-    });
+    //   socket.emit("message-sent", {
+    //     message,
+    //     timestamp: saved.sentAt,
+    //     isMe: true,
+    //   });
+    // });
+socket.on("send-message", async ({ message }) => {
+
+  // 1️⃣ Active anonymous chat DB se nikaalo
+  const chatRoom = await ChatRoom.findOne({
+    isActive: true,
+    $or: [
+      { user1: socket.userId },
+      { user2: socket.userId }
+    ]
+  });
+
+  if (!chatRoom) {
+    console.log("❌ No active anonymous chat for user", socket.userId);
+    return;
+  }
+
+  const roomId = chatRoom._id.toString();
+
+  // 2️⃣ Message DB me save karo
+  const saved = await Message.create({
+    chatRoom: roomId,
+    sender: socket.userId,
+    message,
+  });
+
+  // 3️⃣ ROOM ko emit karo (MOST IMPORTANT)
+  io.to(roomId).emit("new-message", {
+    message,
+    sender: socket.userId,
+    timestamp: saved.sentAt,
+  });
+
+});
 
     /* =====================================================
        👥 FRIEND REQUEST
