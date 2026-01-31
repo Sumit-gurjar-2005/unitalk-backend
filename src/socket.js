@@ -463,7 +463,7 @@ const initializeSocket = (server) => {
     //   });
     // });
 socket.on("send-message", async ({ message }) => {
-
+ console.log("🔥 send-message event HIT:", message);
   // 1️⃣ Active anonymous chat DB se nikaalo
   const chatRoom = await ChatRoom.findOne({
     isActive: true,
