@@ -23,8 +23,9 @@ const nodemailer = require("nodemailer");
 const sendEmail = async (to, otp) => {
   try {
     // 🔎 DEBUG (temporary – Render logs me dikhega)
-    console.log("EMAIL_USER:", process.env.EMAIL_USER ? "OK" : "MISSING");
-    console.log("EMAIL_PASS:", process.env.EMAIL_PASS ? "OK" : "MISSING");
+   console.log("EMAIL_USER =", process.env.EMAIL_USER);
+console.log("EMAIL_PASS =", process.env.EMAIL_PASS ? "SET" : "MISSING");
+
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
