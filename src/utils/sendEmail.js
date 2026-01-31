@@ -22,31 +22,28 @@ const nodemailer = require("nodemailer");
 
 const sendEmail = async (to, otp) => {
   try {
-    // 🔎 DEBUG (temporary – Render logs me dikhega)
-   console.log("EMAIL_USER =", process.env.EMAIL_USER);
-console.log("EMAIL_PASS =", process.env.EMAIL_PASS ? "SET" : "MISSING");
-
-
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: false,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
 
     await transporter.sendMail({
-      from: process.env.EMAIL_USER, // safest
+      from: `"UniTalk OTP" <${process.env.SMTP_USER}>`,
       to,
       subject: "Your UniTalk OTP",
       text: `Your OTP is ${otp}. Valid for 5 minutes.`,
     });
 
-    console.log("✅ OTP email sent to:", to);
+    console.log("✅ OTP mail sent to", to);
 
-  } catch (error) {
-    console.error("❌ OTP EMAIL ERROR:", error);
-    throw error; // important so API knows it failed
+  } catch (err) {
+    console.error("❌ MAIL ERROR:", err);
+    throw err;
   }
 };
 
